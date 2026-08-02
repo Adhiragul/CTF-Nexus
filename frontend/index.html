@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CTF Nexus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="wordmark">
+      <span class="wordmark-bracket">[</span>CTF<span class="accent-amber">_</span>NEXUS<span class="wordmark-bracket">]</span>
+    </div>
+
+    <div class="profile-picker">
+      <label for="profile-select">flag format</label>
+      <select id="profile-select"></select>
+      <button id="new-profile-btn" class="btn-ghost" title="Add a custom flag format for this event">+ new</button>
+    </div>
+
+    <div class="flag-counter" id="flag-counter">
+      <span class="dot" id="flag-dot"></span>
+      <span id="flag-count-text">0 flags found</span>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="sidenav">
+      <button class="nav-item active" data-tab="crypto"><span class="nav-idx">01</span>Crypto / Hash</button>
+      <button class="nav-item" data-tab="stego"><span class="nav-idx">02</span>Stego / File</button>
+      <button class="nav-item" data-tab="web"><span class="nav-idx">03</span>Web Recon</button>
+      <button class="nav-item" data-tab="misc"><span class="nav-idx">04</span>Misc Tools</button>
+      <button class="nav-item" data-tab="flaglog"><span class="nav-idx">05</span>Flag Inventory</button>
+      <div class="nav-footer">
+        <div class="status-line"><span class="status-dot" id="api-status-dot"></span><span id="api-status-text">checking backend&hellip;</span></div>
+        <div class="roadmap-note">Reverse / Forensics / OSINT: scaffolded, not wired to UI yet.</div>
+      </div>
+    </nav>
+
+    <main class="workspace">
+
+      <!-- CRYPTO -->
+      <section class="tab-panel active" id="tab-crypto">
+        <div class="panel-head">
+          <h2>Crypto &amp; Hash Auto-Detect</h2>
+          <p class="sub">Paste a hash, ciphertext, or encoded string. Every check runs — sorted by confidence, not first match.</p>
+        </div>
+        <textarea id="crypto-input" placeholder="098f6bcd4621d373cade4e832627b4f6&#10;or QWxhZGRpbjpvcGVuIHNlc2FtZQ==&#10;or Uryyb Jbeyq..." spellcheck="false"></textarea>
+        <div class="action-row">
+          <button class="btn-primary" id="crypto-analyze-btn">$ analyze</button>
+          <span class="hint">Ctrl/Cmd + Enter</span>
+        </div>
+        <div id="crypto-results" class="results"></div>
+      </section>
+
+      <!-- STEGO -->
+      <section class="tab-panel" id="tab-stego">
+        <div class="panel-head">
+          <h2>Steganography / File Pipeline</h2>
+          <p class="sub">Drop a file — runs file, strings, exiftool, binwalk (+auto-extract), pngcheck, zsteg, steghide info, zbarimg, stegsnow.</p>
+        </div>
+        <div class="dropzone" id="stego-dropzone">
+          <input type="file" id="stego-file-input" hidden />
+          <div class="dropzone-inner">
+            <div class="dropzone-icon">&#8942;&#8942;&#8942;</div>
+            <div>drag a file here, or <span class="link-like" id="stego-browse">browse</span></div>
+            <div class="dropzone-note" id="stego-filename">no file selected</div>
+          </div>
+        </div>
+        <div class="action-row">
+          <button class="btn-primary" id="stego-analyze-btn" disabled>$ run pipeline</button>
+        </div>
+        <div id="stego-results" class="results"></div>
+      </section>
+
+      <!-- WEB -->
+      <section class="tab-panel" id="tab-web">
+        <div class="panel-head">
+          <h2>Web Recon</h2>
+          <p class="sub">robots.txt, sitemap, headers, security headers, cookies, HTML comments, JS files, common exposed paths.</p>
+          <p class="disclaimer">⚠ Only point this at targets you own or are explicitly authorized to test (your own CTF instance).</p>
+        </div>
+        <div class="url-row">
+          <input type="text" id="web-url-input" placeholder="http://target.ctf.local:8080" spellcheck="false" />
+          <button class="btn-primary" id="web-analyze-btn">$ recon</button>
+        </div>
+        <div id="web-results" class="results"></div>
+      </section>
+
+      <!-- MISC -->
+      <section class="tab-panel" id="tab-misc">
+        <div class="panel-head">
+          <h2>Misc Utility Belt</h2>
+        </div>
+        <div class="misc-grid">
+          <div class="misc-card">
+            <h3>Base Converter</h3>
+            <div class="misc-row">
+              <input type="text" id="bc-value" placeholder="value" />
+              <select id="bc-from"><option value="2">bin</option><option value="8">oct</option><option value="10" selected>dec</option><option value="16">hex</option></select>
+              <span>&#8594;</span>
+              <select id="bc-to"><option value="2">bin</option><option value="8">oct</option><option value="10">dec</option><option value="16" selected>hex</option></select>
+              <button class="btn-secondary" id="bc-run">go</button>
+            </div>
+            <pre class="mini-output" id="bc-output"></pre>
+          </div>
+
+          <div class="misc-card">
+            <h3>JWT Decoder</h3>
+            <textarea id="jwt-input" class="mini-textarea" placeholder="eyJhbGciOi...header.payload.signature" spellcheck="false"></textarea>
+            <button class="btn-secondary" id="jwt-run">decode</button>
+            <pre class="mini-output" id="jwt-output"></pre>
+          </div>
+
+          <div class="misc-card">
+            <h3>Timestamp Converter</h3>
+            <div class="misc-row">
+              <input type="text" id="ts-value" placeholder="epoch seconds/ms or ISO8601" />
+              <button class="btn-secondary" id="ts-run">go</button>
+            </div>
+            <pre class="mini-output" id="ts-output"></pre>
+          </div>
+
+          <div class="misc-card">
+            <h3>UUID Parser</h3>
+            <div class="misc-row">
+              <input type="text" id="uuid-value" placeholder="xxxxxxxx-xxxx-1xxx-..." />
+              <button class="btn-secondary" id="uuid-run">go</button>
+            </div>
+            <pre class="mini-output" id="uuid-output"></pre>
+          </div>
+
+          <div class="misc-card">
+            <h3>Unicode Inspector</h3>
+            <div class="misc-row">
+              <input type="text" id="uni-value" placeholder="paste suspicious text" />
+              <button class="btn-secondary" id="uni-run">go</button>
+            </div>
+            <pre class="mini-output" id="uni-output"></pre>
+          </div>
+
+          <div class="misc-card">
+            <h3>Regex Tester</h3>
+            <div class="misc-row">
+              <input type="text" id="rx-pattern" placeholder="pattern e.g. flag\{[^}]+\}" />
+            </div>
+            <textarea id="rx-text" class="mini-textarea" placeholder="text to search" spellcheck="false"></textarea>
+            <button class="btn-secondary" id="rx-run">test</button>
+            <pre class="mini-output" id="rx-output"></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- FLAG LOG -->
+      <section class="tab-panel" id="tab-flaglog">
+        <div class="panel-head">
+          <h2>Flag Inventory</h2>
+          <p class="sub">Every flag pattern matched across every module this session, in the order found.</p>
+        </div>
+        <div id="flaglog-list" class="flaglog-list">
+          <div class="empty-state">Nothing yet — flags found in any module will appear here automatically.</div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <div class="flag-toast" id="flag-toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
