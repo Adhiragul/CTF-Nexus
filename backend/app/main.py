@@ -10,7 +10,7 @@ Or via Docker (see ../Dockerfile / ../../docker-compose.yml at repo root).
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routers import crypto, stego, web, misc, flags
+from .routers import crypto, stego, web, misc, flags, forensics, reverse
 
 app = FastAPI(
     title="CTF Nexus",
@@ -32,8 +32,10 @@ app.include_router(stego.router)
 app.include_router(web.router)
 app.include_router(misc.router)
 app.include_router(flags.router)
+app.include_router(forensics.router)
+app.include_router(reverse.router)
 
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "modules": ["crypto", "stego", "web", "misc", "flags"]}
+    return {"status": "ok", "modules": ["crypto", "stego", "web", "misc", "flags", "forensics", "reverse"]}

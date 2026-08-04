@@ -226,6 +226,18 @@ textarea:focus, input:focus, select:focus { outline: 1px solid var(--amber); bor
 .url-row { display: flex; gap: 10px; }
 .url-row input { flex: 1; }
 
+.section-label {
+  font-family: var(--mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--cyan);
+  margin: 24px 0 10px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+.section-label:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
+
 /* ---------- results ---------- */
 .results { margin-top: 22px; display: flex; flex-direction: column; gap: 10px; }
 

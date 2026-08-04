@@ -347,4 +347,115 @@ function flagPatternScanLocal(text) {
   return hits;
 }
 
+// ---------------------------------------------------------------------------
+// Forensics tab (PCAP)
+// ---------------------------------------------------------------------------
+let selectedPcapFile = null;
+const pcapDropzone = document.getElementById("pcap-dropzone");
+const pcapFileInput = document.getElementById("pcap-file-input");
+
+document.getElementById("pcap-browse").addEventListener("click", () => pcapFileInput.click());
+pcapDropzone.addEventListener("click", e => { if (e.target.id !== "pcap-browse") pcapFileInput.click(); });
+pcapFileInput.addEventListener("change", () => { if (pcapFileInput.files.length) setPcapFile(pcapFileInput.files[0]); });
+pcapDropzone.addEventListener("dragover", e => { e.preventDefault(); pcapDropzone.classList.add("dragover"); });
+pcapDropzone.addEventListener("dragleave", () => pcapDropzone.classList.remove("dragover"));
+pcapDropzone.addEventListener("drop", e => {
+  e.preventDefault();
+  pcapDropzone.classList.remove("dragover");
+  if (e.dataTransfer.files.length) setPcapFile(e.dataTransfer.files[0]);
+});
+
+function setPcapFile(file) {
+  selectedPcapFile = file;
+  document.getElementById("pcap-filename").textContent = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+  document.getElementById("pcap-analyze-btn").disabled = false;
+}
+
+document.getElementById("pcap-analyze-btn").addEventListener("click", async () => {
+  if (!selectedPcapFile) return;
+  const container = document.getElementById("forensics-results");
+  container.innerHTML = `<div class="empty-state">running tshark pipeline… (larger captures take longer)</div>`;
+  const formData = new FormData();
+  formData.append("file", selectedPcapFile);
+  try {
+    const res = await fetch(`${API_BASE}/api/forensics/pcap`, { method: "POST", body: formData });
+    const data = await res.json();
+    if (!res.ok) { container.innerHTML = `<div class="error-box">⚠ ${escapeHtml(data.detail || "request failed")}</div>`; return; }
+    renderResult(container, data, "forensics");
+  } catch (e) {
+    container.innerHTML = `<div class="error-box">⚠ request failed: ${escapeHtml(e.message)}</div>`;
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Reverse tab — binary triage
+// ---------------------------------------------------------------------------
+let selectedBinaryFile = null;
+const binaryDropzone = document.getElementById("binary-dropzone");
+const binaryFileInput = document.getElementById("binary-file-input");
+
+document.getElementById("binary-browse").addEventListener("click", () => binaryFileInput.click());
+binaryDropzone.addEventListener("click", e => { if (e.target.id !== "binary-browse") binaryFileInput.click(); });
+binaryFileInput.addEventListener("change", () => { if (binaryFileInput.files.length) setBinaryFile(binaryFileInput.files[0]); });
+binaryDropzone.addEventListener("dragover", e => { e.preventDefault(); binaryDropzone.classList.add("dragover"); });
+binaryDropzone.addEventListener("dragleave", () => binaryDropzone.classList.remove("dragover"));
+binaryDropzone.addEventListener("drop", e => {
+  e.preventDefault();
+  binaryDropzone.classList.remove("dragover");
+  if (e.dataTransfer.files.length) setBinaryFile(e.dataTransfer.files[0]);
+});
+
+function setBinaryFile(file) {
+  selectedBinaryFile = file;
+  document.getElementById("binary-filename").textContent = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+  document.getElementById("binary-analyze-btn").disabled = false;
+}
+
+document.getElementById("binary-analyze-btn").addEventListener("click", async () => {
+  if (!selectedBinaryFile) return;
+  const container = document.getElementById("reverse-binary-results");
+  container.innerHTML = `<div class="empty-state">running static triage…</div>`;
+  const formData = new FormData();
+  formData.append("file", selectedBinaryFile);
+  try {
+    const res = await fetch(`${API_BASE}/api/reverse/binary`, { method: "POST", body: formData });
+    const data = await res.json();
+    if (!res.ok) { container.innerHTML = `<div class="error-box">⚠ ${escapeHtml(data.detail || "request failed")}</div>`; return; }
+    renderResult(container, data, "reverse:binary");
+    if (data.dynamic_plan) {
+      const planHeader = document.createElement("div");
+      planHeader.className = "section-label";
+      planHeader.style.marginTop = "24px";
+      planHeader.textContent = "auto-generated dynamic-analysis plan";
+      container.appendChild(planHeader);
+      const planDiv = document.createElement("div");
+      container.appendChild(planDiv);
+      renderResult(planDiv, data.dynamic_plan, "reverse:dynamic-plan");
+    }
+  } catch (e) {
+    container.innerHTML = `<div class="error-box">⚠ request failed: ${escapeHtml(e.message)}</div>`;
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Reverse tab — decompiled code
+// ---------------------------------------------------------------------------
+document.getElementById("decompiled-analyze-btn").addEventListener("click", async () => {
+  const code = document.getElementById("decompiled-input").value.trim();
+  const container = document.getElementById("reverse-decompiled-results");
+  if (!code) return;
+  container.innerHTML = `<div class="empty-state">analyzing…</div>`;
+  try {
+    const res = await fetch(`${API_BASE}/api/reverse/decompiled`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code }),
+    });
+    const data = await res.json();
+    renderResult(container, data, "reverse:decompiled");
+  } catch (e) {
+    container.innerHTML = `<div class="error-box">⚠ request failed: ${escapeHtml(e.message)}</div>`;
+  }
+});
+
 renderFlagLog();

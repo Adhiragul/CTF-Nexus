@@ -32,11 +32,13 @@
       <button class="nav-item active" data-tab="crypto"><span class="nav-idx">01</span>Crypto / Hash</button>
       <button class="nav-item" data-tab="stego"><span class="nav-idx">02</span>Stego / File</button>
       <button class="nav-item" data-tab="web"><span class="nav-idx">03</span>Web Recon</button>
-      <button class="nav-item" data-tab="misc"><span class="nav-idx">04</span>Misc Tools</button>
-      <button class="nav-item" data-tab="flaglog"><span class="nav-idx">05</span>Flag Inventory</button>
+      <button class="nav-item" data-tab="forensics"><span class="nav-idx">04</span>Forensics / PCAP</button>
+      <button class="nav-item" data-tab="reverse"><span class="nav-idx">05</span>Reverse Eng.</button>
+      <button class="nav-item" data-tab="misc"><span class="nav-idx">06</span>Misc Tools</button>
+      <button class="nav-item" data-tab="flaglog"><span class="nav-idx">07</span>Flag Inventory</button>
       <div class="nav-footer">
         <div class="status-line"><span class="status-dot" id="api-status-dot"></span><span id="api-status-text">checking backend&hellip;</span></div>
-        <div class="roadmap-note">Reverse / Forensics / OSINT: scaffolded, not wired to UI yet.</div>
+        <div class="roadmap-note">OSINT: scaffolded, not wired to UI yet.</div>
       </div>
     </nav>
 
@@ -88,6 +90,55 @@
           <button class="btn-primary" id="web-analyze-btn">$ recon</button>
         </div>
         <div id="web-results" class="results"></div>
+      </section>
+
+      <!-- FORENSICS -->
+      <section class="tab-panel" id="tab-forensics">
+        <div class="panel-head">
+          <h2>Forensics / PCAP</h2>
+          <p class="sub">Upload a .pcap/.pcapng — protocol hierarchy, TCP stream reconstruction (flag-scanned), HTTP object export, cleartext credential detection, DNS-exfiltration heuristics.</p>
+        </div>
+        <div class="dropzone" id="pcap-dropzone">
+          <input type="file" id="pcap-file-input" hidden accept=".pcap,.pcapng,.cap" />
+          <div class="dropzone-inner">
+            <div class="dropzone-icon">&#8942;&#8942;&#8942;</div>
+            <div>drag a .pcap here, or <span class="link-like" id="pcap-browse">browse</span></div>
+            <div class="dropzone-note" id="pcap-filename">no file selected</div>
+          </div>
+        </div>
+        <div class="action-row">
+          <button class="btn-primary" id="pcap-analyze-btn" disabled>$ analyze capture</button>
+        </div>
+        <div id="forensics-results" class="results"></div>
+      </section>
+
+      <!-- REVERSE -->
+      <section class="tab-panel" id="tab-reverse">
+        <div class="panel-head">
+          <h2>Reverse Engineering</h2>
+          <p class="sub">Upload a binary for static triage (file/strings/readelf/checksec), or paste Ghidra-decompiled C to scan for vulnerable patterns and get a pwntools skeleton for dynamic analysis.</p>
+        </div>
+
+        <h3 class="section-label">Binary — static triage</h3>
+        <div class="dropzone" id="binary-dropzone">
+          <input type="file" id="binary-file-input" hidden />
+          <div class="dropzone-inner">
+            <div class="dropzone-icon">&#8942;&#8942;&#8942;</div>
+            <div>drag an ELF/PE here, or <span class="link-like" id="binary-browse">browse</span></div>
+            <div class="dropzone-note" id="binary-filename">no file selected</div>
+          </div>
+        </div>
+        <div class="action-row">
+          <button class="btn-primary" id="binary-analyze-btn" disabled>$ triage binary</button>
+        </div>
+        <div id="reverse-binary-results" class="results"></div>
+
+        <h3 class="section-label">Decompiled C — paste from Ghidra/r2/Binja</h3>
+        <textarea id="decompiled-input" placeholder="undefined8 main(void) {&#10;  ...paste decompiled pseudocode here...&#10;}" spellcheck="false"></textarea>
+        <div class="action-row">
+          <button class="btn-primary" id="decompiled-analyze-btn">$ analyze decompiled code</button>
+        </div>
+        <div id="reverse-decompiled-results" class="results"></div>
       </section>
 
       <!-- MISC -->

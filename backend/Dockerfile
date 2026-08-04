@@ -2,10 +2,14 @@ FROM python:3.12-slim
 
 # --- system tool-chain used by the stego/forensics pipeline -----------------
 # ruby is only here for zsteg (gem install) - it can't be installed via apt.
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# tshark needs debconf pre-seeding to skip its interactive "allow non-root
+# capture" prompt during a non-interactive Docker build.
+RUN echo 'wireshark-common wireshark-common/install-setuid boolean false' | debconf-set-selections \
+    && DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-install-recommends \
         file binutils \
         exiftool binwalk steghide foremost pngcheck xxd \
         zbar-tools \
+        tshark checksec \
         ruby ruby-dev build-essential \
         whois dnsutils \
     && rm -rf /var/lib/apt/lists/* \

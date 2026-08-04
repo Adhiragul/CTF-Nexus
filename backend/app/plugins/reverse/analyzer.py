@@ -67,9 +67,9 @@ def analyze_binary(filepath: str) -> AnalysisResult:
             findings.append(Finding(label="readelf_header", summary="ELF header", confidence=0.7, data=readelf_out.strip()))
 
     if shutil.which("checksec"):
-        checksec_out = _run(["checksec", "--file=" + str(path)])
+        checksec_out = _run(["checksec", "--format=json", "--file=" + str(path)])
         if checksec_out:
-            findings.append(Finding(label="checksec", summary="Binary protections", confidence=0.8, data=checksec_out.strip()))
+            findings.append(Finding(label="checksec", summary="Binary protections (JSON)", confidence=0.8, data=checksec_out.strip()))
     else:
         findings.append(Finding(label="checksec", summary="checksec not installed (pip install checksec.py or apt install checksec)", confidence=0.0))
 
